@@ -14,10 +14,19 @@ import (
 	"github.com/go-shiori/go-readability"
 )
 
+type config struct {
+	wpm            int
+	pauses         map[string]time.Duration // Determines the pause between words when the according string is found in the word
+	normal, strong tcell.Style
+	left           int // Start of text
+}
+
 func main() {
+	var wpm int
+	flag.IntVar(&wpm, "w", 400, "words per minute")
+	flag.Parse()
 	// Get content
 	var content []string
-	flag.Parse()
 	switch flag.NArg() {
 	case 0:
 		fmt.Fprintf(os.Stderr, "%s: reading from stdin...\n", filepath.Base(os.Args[0]))
@@ -27,14 +36,14 @@ func main() {
 		}
 		content = strings.Split(string(b), " ")
 	case 1:
-		article, err := readability.FromURL(flag.Arg(0), time.Second)
+		article, err := readability.FromURL(flag.Arg(0), time.Second*3)
 		if err != nil {
 			log.Fatalln("error extracting articlet text:", err)
 		}
 		content = strings.Split(article.TextContent, " ")
 	}
 	err := speedread(content, config{
-		wpm:    400,
+		wpm:    wpm,
 		strong: tcell.StyleDefault.Bold(true).Foreground(tcell.ColorRed),
 		// normal: tcell.StyleDefault.Reverse(true),
 		pauses: map[string]time.Duration{
@@ -47,15 +56,8 @@ func main() {
 		left: 10,
 	})
 	if err != nil {
-		panic(err)
+		log.Fatal(err)
 	}
-}
-
-type config struct {
-	wpm            int
-	pauses         map[string]time.Duration // Determines the pause between words when the according string is found in the word
-	normal, strong tcell.Style
-	left           int // Start of text
 }
 
 func speedread(content []string, config config) error { // TODO: turn config parameters into a struct
@@ -138,7 +140,7 @@ func speedread(content []string, config config) error { // TODO: turn config par
 				case 'q':
 					return nil
 				case ' ':
-					pausing = !pausing
+					pausing = !pausing // TODO: handle events, update tagline while pausing
 				case ']':
 					config.wpm += 10
 				case '[':
