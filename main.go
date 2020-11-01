@@ -14,7 +14,7 @@ import (
 	"github.com/go-shiori/go-readability"
 )
 
-type config struct {
+type config struct { // TODO: add command line flags for every value here
 	wpm            int
 	pauses         map[string]time.Duration // Determines the pause between words when the according string is found in the word
 	normal, strong tcell.Style
@@ -34,13 +34,14 @@ func main() {
 		if err != nil {
 			log.Fatalln("error reading stdin:", err)
 		}
-		content = strings.Split(string(b), " ")
+		content = strings.Fields(string(b))
 	case 1:
 		article, err := readability.FromURL(flag.Arg(0), time.Second*3)
 		if err != nil {
-			log.Fatalln("error extracting articlet text:", err)
+			log.Fatalln("error extracting article text:", err)
 		}
-		content = strings.Split(article.TextContent, " ")
+		content = strings.Fields(article.TextContent)
+		// TODO: handle images, code blocks, links, footnotes and other web stuff
 	}
 	err := speedread(content, config{
 		wpm:    wpm,
@@ -113,6 +114,9 @@ func speedread(content []string, config config) error { // TODO: turn config par
 			// word
 			bold = config.left
 			for i, c := range content[word] {
+				// if !unicode.IsGraphic(c) {
+				// 	panic("non-graphic char")
+				// }
 				if config.left+i == bold {
 					screen.SetContent(config.left+i, h/2, c, []rune{}, config.strong)
 				} else {
