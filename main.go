@@ -91,9 +91,6 @@ func speedread(content []string, config config) error { // TODO: turn config par
 	)
 
 	for word < len(content)-1 && word >= 0 {
-		if !pausing {
-			word++
-		}
 
 		w, h = screen.Size() // TODO: only compute this on EventResize
 		read := float64(word) / float64(len(content))
@@ -149,10 +146,16 @@ func speedread(content []string, config config) error { // TODO: turn config par
 					config.wpm += 10
 				case '[':
 					config.wpm -= 10
-				case 'h': // h and l only work when paused
-					word--
+				case 'h':
+					if pausing {
+						word--
+					} else {
+						word -= 2 // because we add 1 later
+					}
 				case 'l':
 					word++
+				case '0':
+					word = 0
 				case '>':
 					config.left++
 				case '<':
@@ -161,6 +164,9 @@ func speedread(content []string, config config) error { // TODO: turn config par
 			}
 		}
 		screen.Clear()
+		if !pausing {
+			word++
+		}
 	}
 	return nil
 }
