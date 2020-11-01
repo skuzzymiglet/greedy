@@ -93,48 +93,48 @@ func speedread(content []string, config config) error { // TODO: turn config par
 	for word < len(content)-1 && word >= 0 {
 		if !pausing {
 			word++
-
-			w, h = screen.Size() // TODO: only compute this on EventResize
-			read := float64(word) / float64(len(content))
-
-			// tagline
-			fmt.Fprintf(&tagline, "%d wpm (%d/%d) <", config.wpm, word, len(content))
-			taglineWidth := w - len(tagline.String()) - 1
-
-			for i := 0; i < int(read*float64(taglineWidth)); i++ {
-				fmt.Fprint(&tagline, "=")
-			}
-
-			for i, c := range tagline.String() {
-				screen.SetContent(i, 0, c, []rune{}, tcell.StyleDefault)
-			}
-			screen.SetContent(w-1, 0, '>', []rune{}, tcell.StyleDefault)
-			tagline.Reset()
-
-			// word
-			bold = config.left
-			for i, c := range content[word] {
-				// if !unicode.IsGraphic(c) {
-				// 	panic("non-graphic char")
-				// }
-				if config.left+i == bold {
-					screen.SetContent(config.left+i, h/2, c, []rune{}, config.strong)
-				} else {
-					screen.SetContent(config.left+i, h/2, c, []rune{}, config.normal)
-				}
-			}
-			screen.Show()
-
-			// determine how long to wait
-			t = func() time.Duration {
-				for k, v := range config.pauses {
-					if strings.Contains(content[word], k) {
-						return v
-					}
-				}
-				return time.Minute / time.Duration(config.wpm)
-			}()
 		}
+
+		w, h = screen.Size() // TODO: only compute this on EventResize
+		read := float64(word) / float64(len(content))
+
+		// tagline
+		fmt.Fprintf(&tagline, "%d wpm (%d/%d) <", config.wpm, word, len(content))
+		taglineWidth := w - len(tagline.String()) - 1
+
+		for i := 0; i < int(read*float64(taglineWidth)); i++ {
+			fmt.Fprint(&tagline, "=")
+		}
+
+		for i, c := range tagline.String() {
+			screen.SetContent(i, 0, c, []rune{}, tcell.StyleDefault)
+		}
+		screen.SetContent(w-1, 0, '>', []rune{}, tcell.StyleDefault)
+		tagline.Reset()
+
+		// word
+		bold = config.left
+		for i, c := range content[word] {
+			// if !unicode.IsGraphic(c) {
+			// 	panic("non-graphic char")
+			// }
+			if config.left+i == bold {
+				screen.SetContent(config.left+i, h/2, c, []rune{}, config.strong)
+			} else {
+				screen.SetContent(config.left+i, h/2, c, []rune{}, config.normal)
+			}
+		}
+		screen.Show()
+
+		// determine how long to wait
+		t = func() time.Duration {
+			for k, v := range config.pauses {
+				if strings.Contains(content[word], k) {
+					return v
+				}
+			}
+			return time.Minute / time.Duration(config.wpm)
+		}()
 		select {
 		case <-time.After(t):
 		case key := <-keyChan:
@@ -150,7 +150,7 @@ func speedread(content []string, config config) error { // TODO: turn config par
 				case '[':
 					config.wpm -= 10
 				case 'h':
-					word-- // NOTE: doesn't work
+					word-- // BUG: doesn't work
 				case 'l':
 					word++
 				case '>':
