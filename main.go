@@ -135,7 +135,7 @@ func speedread(content []string, config config) error { // TODO: turn config par
 			}
 			return time.Minute / time.Duration(config.wpm)
 		}()
-		select {
+		select { // TODO: listen for keys all the time
 		case <-time.After(t):
 		case key := <-keyChan:
 			switch k := key.(type) {
@@ -144,13 +144,13 @@ func speedread(content []string, config config) error { // TODO: turn config par
 				case 'q':
 					return nil
 				case ' ':
-					pausing = !pausing // TODO: handle events, update tagline while pausing
+					pausing = !pausing
 				case ']':
 					config.wpm += 10
 				case '[':
 					config.wpm -= 10
-				case 'h':
-					word-- // BUG: doesn't work
+				case 'h': // h and l only work when paused
+					word--
 				case 'l':
 					word++
 				case '>':
