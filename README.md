@@ -20,4 +20,4 @@ greedy https://www.arp242.net/read-stdin.html # read articles from the web
 + `<`: move text left
 + `>`: move text right
 
-[![asciicast](https://asciinema.org/a/dE2t5QYhS8cCbHhmVd1c4qDrY.svg)](https://asciinema.org/a/dE2t5QYhS8cCbHhmVd1c4qDrY)
+<a href="https://asciinema.org/a/dE2t5QYhS8cCbHhmVd1c4qDrY" target="_blank"><img src="https://asciinema.org/a/dE2t5QYhS8cCbHhmVd1c4qDrY.svg" style="min-width: 100%;"/></a>
