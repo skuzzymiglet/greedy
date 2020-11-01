@@ -138,6 +138,16 @@ func speedread(content []string, config config) error {
 		case key := <-keyChan:
 			switch k := key.(type) {
 			case *tcell.EventKey:
+				switch k.Key() {
+				case tcell.KeyLeft:
+					if pausing {
+						word--
+					} else {
+						word -= 2 // because we add 1 later
+					}
+				case tcell.KeyRight:
+					word++
+				}
 				switch k.Rune() {
 				case 'q':
 					return nil
