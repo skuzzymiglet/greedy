@@ -139,5 +139,8 @@ func speedread(content []string, config config) (endPos int, err error) {
 			word++
 		}
 	}
+	if word == len(content) {
+		return 0, nil // If you reach the end, the position goes back to 0
+	}
 	return word, nil
 }
