@@ -1,12 +1,15 @@
 package main
 
 import (
+	"crypto/sha256"
+	"encoding/hex"
 	"flag"
 	"fmt"
 	"io/ioutil"
 	"log"
 	"os"
 	"path/filepath"
+	"strconv"
 	"strings"
 	"time"
 
@@ -15,18 +18,63 @@ import (
 )
 
 type config struct { // TODO: add command line flags for every value here
+	startPos       int
 	wpm            int
 	pauses         map[string]time.Duration // Determines the pause between words when the according string is found in the word
 	normal, strong tcell.Style
 	left           int // Start of text
 }
 
+// Find last stored position
+// Returns 0, nil if none is found and no error occurs
+func lookupPos(contentHash [sha256.Size]byte) (int, error) {
+	cacheDir, err := os.UserCacheDir()
+	if err != nil {
+		return 0, err
+	}
+	pos, err := ioutil.ReadFile(filepath.Join(cacheDir, "greedy", hex.EncodeToString(contentHash[:])))
+	if err != nil {
+		if os.IsNotExist(err) {
+			return 0, nil
+		}
+		return 0, err
+	}
+	return strconv.Atoi(string(pos))
+}
+
+func writePos(contentHash [sha256.Size]byte, pos int) error {
+	cacheDir, err := os.UserCacheDir()
+	if err != nil {
+		return err
+	}
+	err = os.MkdirAll(filepath.Join(cacheDir, "greedy"), 0777)
+	if err != nil {
+		return err
+	}
+	err = ioutil.WriteFile(
+		filepath.Join(cacheDir, "greedy", hex.EncodeToString(contentHash[:])),
+		[]byte(strconv.Itoa(pos)),
+		0777,
+	)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
 func main() {
-	var wpm int
+	var (
+		wpm       int
+		savePos   bool
+		resumePos bool
+	)
 	flag.IntVar(&wpm, "w", 400, "words per minute")
+	flag.BoolVar(&savePos, "p", true, "save position")
+	flag.BoolVar(&resumePos, "r", true, "try to resume at saved position")
 	flag.Parse()
 	// Get content
 	var content []string
+	var contentHash [sha256.Size]byte
 	switch flag.NArg() {
 	case 0:
 		fmt.Fprintf(os.Stderr, "%s: reading from stdin...\n", filepath.Base(os.Args[0]))
@@ -34,16 +82,18 @@ func main() {
 		if err != nil {
 			log.Fatalln("error reading stdin:", err)
 		}
+		contentHash = sha256.Sum256(b)
 		content = strings.Fields(string(b))
 	case 1:
 		article, err := readability.FromURL(flag.Arg(0), time.Second*3)
 		if err != nil {
 			log.Fatalln("error extracting article text:", err)
 		}
+		contentHash = sha256.Sum256([]byte(article.TextContent))
 		content = strings.Fields(article.TextContent)
 		// TODO: handle images, code blocks, links, footnotes and other web stuff
 	}
-	err := speedread(content, config{
+	conf := config{
 		wpm:    wpm,
 		strong: tcell.StyleDefault.Bold(true).Foreground(tcell.ColorRed),
 		// normal: tcell.StyleDefault.Reverse(true),
@@ -55,22 +105,36 @@ func main() {
 			",": time.Millisecond * time.Duration(300),
 		},
 		left: 10,
-	})
+	}
+	if resumePos {
+		p, err := lookupPos(contentHash)
+		if err != nil {
+			log.Fatalln("error finding last position:", err)
+		}
+		conf.startPos = p
+	}
+	end, err := speedread(content, conf)
+	if savePos {
+		err = writePos(contentHash, end)
+		if err != nil {
+			log.Fatalln("Error saving position:", err)
+		}
+	}
 	if err != nil {
 		log.Fatal(err)
 	}
 }
 
-func speedread(content []string, config config) error {
+func speedread(content []string, config config) (endPos int, err error) {
 	// TODO: resume at a position
 	// tcell stuff
 	screen, err := tcell.NewScreen()
 	if err != nil {
-		return err
+		return config.startPos, err
 	}
 
 	if err = screen.Init(); err != nil {
-		return err
+		return config.startPos, err
 	}
 	defer screen.Fini()
 	screen.Clear()
@@ -87,7 +151,7 @@ func speedread(content []string, config config) error {
 		w, h,
 		bold int // Character to bolden
 		tagline strings.Builder
-		word    int // current word
+		word    int = config.startPos
 		t       time.Duration
 	)
 
@@ -150,7 +214,7 @@ func speedread(content []string, config config) error {
 				}
 				switch k.Rune() {
 				case 'q':
-					return nil
+					return word, nil
 				case ' ':
 					pausing = !pausing
 				case ']':
@@ -179,5 +243,5 @@ func speedread(content []string, config config) error {
 			word++
 		}
 	}
-	return nil
+	return word, nil
 }
