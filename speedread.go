@@ -17,6 +17,12 @@ type config struct { // TODO: add command line flags for every value here
 }
 
 func speedread(content []string, config config) (endPos int, err error) {
+	// TODO: show "unfamiliar" words for longer
+	// + Emojis
+	// + "Weird" characters (symbols)
+	// + Long words
+	// Maybe we could pause based on an ngram database?
+
 	// tcell stuff
 	screen, err := tcell.NewScreen()
 	if err != nil {

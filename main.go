@@ -64,10 +64,12 @@ func main() {
 		if err != nil {
 			log.Fatalln("error finding last position:", err)
 		}
+		log.Printf("Resuming at word %d\n", p)
 		conf.startPos = p
 	}
 	end, err := speedread(content, conf)
 	if savePos {
+		log.Println("Saving position...")
 		err = writePos(contentHash, end)
 		if err != nil {
 			log.Fatalln("Error saving position:", err)
