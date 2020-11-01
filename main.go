@@ -61,7 +61,8 @@ func main() {
 	}
 }
 
-func speedread(content []string, config config) error { // TODO: turn config parameters into a struct
+func speedread(content []string, config config) error {
+	// TODO: resume at a position
 	// tcell stuff
 	screen, err := tcell.NewScreen()
 	if err != nil {
