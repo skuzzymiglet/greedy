@@ -1,4 +1,4 @@
-module greedy
+module github.com/skuzzymiglet/greedy
 
 go 1.15
 
