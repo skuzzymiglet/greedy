@@ -8,6 +8,8 @@ import (
 	"github.com/gdamore/tcell"
 )
 
+// TODO: pauses on new paragraphs
+// Currrently, the text is split by whitespace. Paragraphs are bolted onto eachother
 type config struct { // TODO: add command line flags for every value here
 	startPos       int
 	wpm            int
@@ -16,7 +18,8 @@ type config struct { // TODO: add command line flags for every value here
 	left           int // Start of text
 }
 
-func speedread(content []string, config config) (endPos int, err error) {
+func speedread(content []string, config config, title string) (endPos int, err error) {
+	// TODO: pause at start and end. You often can't start reading instantly
 	// TODO: show "unfamiliar" words for longer
 	// + Emojis
 	// + "Weird" characters (symbols)
@@ -57,7 +60,7 @@ func speedread(content []string, config config) (endPos int, err error) {
 		read := float64(word) / float64(len(content))
 
 		// tagline
-		fmt.Fprintf(&tagline, "%d wpm (%d/%d) <", config.wpm, word, len(content))
+		fmt.Fprintf(&tagline, "%s [%d wpm] (%d/%d) <", title, config.wpm, word, len(content))
 		taglineWidth := w - len(tagline.String()) - 1
 
 		for i := 0; i < int(read*float64(taglineWidth)); i++ {

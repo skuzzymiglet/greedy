@@ -28,8 +28,10 @@ func main() {
 	// Get content
 	var content []string
 	var contentHash [sha256.Size]byte
+	var title string
 	switch flag.NArg() {
 	case 0:
+		title = "stdin"
 		fmt.Fprintf(os.Stderr, "%s: reading from stdin...\n", filepath.Base(os.Args[0]))
 		b, err := ioutil.ReadAll(os.Stdin)
 		if err != nil {
@@ -42,6 +44,7 @@ func main() {
 		if err != nil {
 			log.Fatalln("error extracting article text:", err)
 		}
+		title = article.Title
 		contentHash = sha256.Sum256([]byte(article.TextContent))
 		content = strings.Fields(article.TextContent)
 		// TODO: handle images, code blocks, links, footnotes and other web stuff
@@ -67,7 +70,7 @@ func main() {
 		log.Printf("Resuming at word %d\n", p)
 		conf.startPos = p
 	}
-	end, err := speedread(content, conf)
+	end, err := speedread(content, conf, title)
 	if savePos {
 		log.Println("Saving position...")
 		err = writePos(contentHash, end)

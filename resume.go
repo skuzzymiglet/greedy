@@ -9,6 +9,8 @@ import (
 	"strconv"
 )
 
+// TODO: save config as json, so we can restore
+
 // Find last stored position
 // Returns 0, nil if none is found and no error occurs
 func lookupPos(contentHash [sha256.Size]byte) (int, error) {
