@@ -11,11 +11,12 @@ import (
 // TODO: pauses on new paragraphs
 // Currrently, the text is split by whitespace. Paragraphs are bolted onto eachother
 type config struct { // TODO: add command line flags for every value here
-	startPos       int
-	wpm            int
-	pauses         map[string]time.Duration // Determines the pause between words when the according string is found in the word
-	normal, strong tcell.Style
-	left           int // Start of text
+	pauseEnd, pauseStart bool // TODO: pause when not focused (X11 hacks!)
+	startPos             int
+	wpm                  int
+	pauses               map[string]time.Duration // Determines the pause between words when the according string is found in the word
+	normal, strong       tcell.Style
+	left                 int // Start of text
 }
 
 func speedread(content []string, config config, title string) (endPos int, err error) {
@@ -24,7 +25,7 @@ func speedread(content []string, config config, title string) (endPos int, err e
 	// + Emojis
 	// + "Weird" characters (symbols)
 	// + Long words
-	// Maybe we could pause based on an ngram database?
+	// Maybe we could pause based on an ngram database? (lol binary bloat)
 
 	// tcell stuff
 	screen, err := tcell.NewScreen()
@@ -46,7 +47,7 @@ func speedread(content []string, config config, title string) (endPos int, err e
 	}()
 
 	var (
-		pausing bool
+		pausing bool = config.pauseStart
 		w, h,
 		bold int // Character to bolden
 		tagline strings.Builder
@@ -60,7 +61,7 @@ func speedread(content []string, config config, title string) (endPos int, err e
 		read := float64(word) / float64(len(content))
 
 		// tagline
-		fmt.Fprintf(&tagline, "%s [%d wpm] (%d/%d) <", title, config.wpm, word, len(content))
+		fmt.Fprintf(&tagline, "%s [%d wpm] (%d/%d) <", title, config.wpm, word, len(content)) // TODO: truncate title
 		taglineWidth := w - len(tagline.String()) - 1
 
 		for i := 0; i < int(read*float64(taglineWidth)); i++ {
@@ -138,6 +139,9 @@ func speedread(content []string, config config, title string) (endPos int, err e
 			}
 		}
 		screen.Clear()
+		if word == len(content)-1 {
+			pausing = config.pauseEnd
+		}
 		if !pausing {
 			word++
 		}

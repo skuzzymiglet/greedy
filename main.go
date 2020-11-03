@@ -15,6 +15,21 @@ import (
 	"github.com/go-shiori/go-readability"
 )
 
+var defaultConfig = config{
+	wpm:    400,
+	strong: tcell.StyleDefault.Bold(true).Foreground(tcell.ColorRed),
+	// normal: tcell.StyleDefault.Reverse(true),
+	pauses: map[string]time.Duration{
+		".": time.Millisecond * time.Duration(500),
+		"(": time.Millisecond * time.Duration(200),
+		")": time.Millisecond * time.Duration(200),
+		"-": time.Millisecond * time.Duration(300),
+		",": time.Millisecond * time.Duration(300),
+	},
+	pauseEnd: true, pauseStart: true,
+	left: 10,
+}
+
 func main() {
 	var (
 		wpm       int
@@ -49,19 +64,9 @@ func main() {
 		content = strings.Fields(article.TextContent)
 		// TODO: handle images, code blocks, links, footnotes and other web stuff
 	}
-	conf := config{
-		wpm:    wpm,
-		strong: tcell.StyleDefault.Bold(true).Foreground(tcell.ColorRed),
-		// normal: tcell.StyleDefault.Reverse(true),
-		pauses: map[string]time.Duration{
-			".": time.Millisecond * time.Duration(500),
-			"(": time.Millisecond * time.Duration(200),
-			")": time.Millisecond * time.Duration(200),
-			"-": time.Millisecond * time.Duration(300),
-			",": time.Millisecond * time.Duration(300),
-		},
-		left: 10,
-	}
+	// TODO: cannot resume a file if at end
+	conf := defaultConfig
+	conf.wpm = wpm
 	if resumePos {
 		p, err := lookupPos(contentHash)
 		if err != nil {
