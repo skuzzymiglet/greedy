@@ -41,6 +41,7 @@ func main() {
 	flag.BoolVar(&resumePos, "r", true, "try to resume at saved position")
 	flag.Parse()
 	// Get content
+	// TODO: stream mode where input is read gradually. Cos stdin
 	var content []string
 	var contentHash [sha256.Size]byte
 	var title string

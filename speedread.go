@@ -61,7 +61,12 @@ func speedread(content []string, config config, title string) (endPos int, err e
 		read := float64(word) / float64(len(content))
 
 		// tagline
-		fmt.Fprintf(&tagline, "%s [%d wpm] (%d/%d) <", title, config.wpm, word, len(content)) // TODO: truncate title
+		// Truncate title to 50% screen width
+		truncTitle := title
+		if len(title) >= (w/2)-3 {
+			truncTitle = title[:(w/2)-3] + "..."
+		}
+		fmt.Fprintf(&tagline, "%s [%d wpm] (%d/%d) <", truncTitle, config.wpm, word, len(content)) // TODO: truncate title
 		taglineWidth := w - len(tagline.String()) - 1
 
 		for i := 0; i < int(read*float64(taglineWidth)); i++ {
