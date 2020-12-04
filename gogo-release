@@ -1,0 +1,83 @@
+#!/bin/sh
+#
+# https://github.com/arp242/gogo-release
+
+set -euC
+
+# Valid combinations: https://golang.org/doc/install/source#environment
+# Everything from the third argument on are set as env vars; for example:
+#   linux amd64 CC=foo CXX=bar
+matrix="
+linux amd64
+linux 386
+linux arm64
+windows amd64
+"
+
+# Program to run on the binary after build, usually to compress it. "upx -qqq"
+# is recommended for servers and other programs where an extra ~200ms of startup
+# time isn't a big deal. It's not recommended for CLI apps and the like.
+#
+# gzip -f can be used to just compress the uploaded file.
+#post_build="upx -qqq"
+post_build=""
+
+# Location to put the binaries.
+tmp=./dist
+mkdir -p "$tmp"
+
+# Project name.
+name=$(basename "$(go list)")
+
+# Get the version from commandline or git tag.
+tag=${1:-}
+if [ -z "$tag" ]; then
+    commit=$(git log -n1 --format='%H' | head -c10)
+    tag=$(git tag -l --points-at "$commit")
+    if [ -z "$tag" ]; then
+        tag=$commit
+        # echo >&2 "Need to have a tag on the current commit or give the version as the first argument (i.e. ${0} v1.0.0)"
+        # exit 1
+    fi
+fi
+
+# Flags to pass to "go build"; you can add a package name or build tags here;
+# for example in your local .gogo-release you can append to it like so:
+#   build_flags="$build_flags -tags mytag ./cmd/myapp"
+build_flags="-trimpath -ldflags='-w -s -X main.version=$tag'"
+
+# Disable cgo by default to create static binaries; re-enable in local
+# .gogo-release if you don't want this.
+export CGO_ENABLED=0
+
+# Pick up configuration to override any of the above.
+[ -f "./.gogo-release" ] && . ./.gogo-release
+
+# Compile
+IFS="
+"
+for arch in $matrix; do
+    (
+        export GOOS=${arch%% *}
+        export GOARCH=${arch#* }
+        env=${GOARCH#* }
+        export GOARCH=${GOARCH%% *}
+        [ "$env" != "$GOARCH" ] && IFS=" " && for e in $env; do export "$e"; done
+
+        # out="$tmp/$name-$tag-$GOOS-$GOARCH"
+        out="$tmp/$name-$GOOS-$GOARCH"
+        [ "$GOOS" = "windows" ] && out="$out.exe"
+        echo "=== BUILDING $out ==="
+
+        eval "time go build -o $out $build_flags"
+        if [ -n "${post_build:-}" ]; then
+            printf '\r%60s\rCompressing %s' ' ' "$out"
+            eval time $post_build "$out" || :
+        fi
+    )
+done
+
+echo
+type gogo_before_exit >/dev/null 2>&1 && gogo_before_exit
+
+exit 0
