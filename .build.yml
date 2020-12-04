@@ -1,14 +1,14 @@
 image: alpine/edge
 artifacts:
-  - greedy/dist/feef-linux-amd64
-  - greedy/dist/feef-linux-386
-  - greedy/dist/feef-linux-arm64
-  - greedy/dist/feef-windows-amd64.exe
+  - greedy/dist/greeedy-linux-amd64
+  - greedy/dist/greeedy-linux-386
+  - greedy/dist/greeedy-linux-arm64
+  - greedy/dist/greeedy-windows-amd64.exe
 packages:
   - go
 sources:
   - https://git.sr.ht/~skuzzymiglet/greedy
 tasks:
   - builds: |
-      cd feef
+      cd greedy
       ./gogo-release
