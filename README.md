@@ -1,6 +1,7 @@
 # greedy - a simple speedreader for your terminal
 
 If you have Go: `go get -u -v github.com/skuzzymiglet/greedy`
+
 If not, grab a release off the releases tab
 
 ```sh
