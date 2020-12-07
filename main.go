@@ -79,7 +79,12 @@ func main() {
 	end, err := speedread(content, conf, title)
 	if savePos {
 		log.Println("Saving position...")
-		err = writePos(contentHash, end)
+		if end == len(content)-1 {
+			log.Println("reached end, saving position as 0")
+			err = writePos(contentHash, 0)
+		} else {
+			err = writePos(contentHash, end)
+		}
 		if err != nil {
 			log.Fatalln("Error saving position:", err)
 		}

@@ -22,6 +22,7 @@ type config struct { // TODO: add command line flags for every value here
 func speedread(content []string, config config, title string) (endPos int, err error) {
 	// TODO: pause at start and end. You often can't start reading instantly
 	// TODO: show "unfamiliar" words for longer
+    // TODO: / to search for text
 	// + Emojis
 	// + "Weird" characters (symbols)
 	// + Long words
@@ -66,7 +67,9 @@ func speedread(content []string, config config, title string) (endPos int, err e
 		if len(title) >= (w/2)-3 {
 			truncTitle = title[:(w/2)-3] + "..."
 		}
-		fmt.Fprintf(&tagline, "%s [%d wpm] (%d/%d) <", truncTitle, config.wpm, word, len(content)) // TODO: truncate title
+		fmt.Fprint(&tagline, truncTitle)
+		fmt.Fprintf(&tagline, "[%d wpm]", config.wpm)
+		fmt.Fprintf(&tagline, "(%d/%d) <", word, len(content))
 		taglineWidth := w - len(tagline.String()) - 1
 
 		for i := 0; i < int(read*float64(taglineWidth)); i++ {
