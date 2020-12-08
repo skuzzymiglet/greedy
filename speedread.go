@@ -66,8 +66,9 @@ func speedread(content []string, config config, title string) (endPos int, err e
 		// tagline
 		// Truncate title to 50% screen width
 		truncTitle := title
-		if len(title) >= (w/2)-3 {
-			truncTitle = title[:(w/2)-3] + "..."
+		titleRunes := []rune(title)
+		if len(titleRunes) >= (w/2)-3 {
+			truncTitle = string(titleRunes[:(w/2)-3]) + "..." // Runewise trimming
 		}
 		fmt.Fprint(&tagline, truncTitle)
 		fmt.Fprintf(&tagline, "[%d wpm]", config.wpm)
