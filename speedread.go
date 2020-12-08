@@ -22,7 +22,7 @@ type config struct { // TODO: add command line flags for every value here
 func speedread(content []string, config config, title string) (endPos int, err error) {
 	// TODO: pause at start and end. You often can't start reading instantly
 	// TODO: show "unfamiliar" words for longer
-    // TODO: / to search for text
+	// TODO: / to search for text
 	// + Emojis
 	// + "Weird" characters (symbols)
 	// + Long words
@@ -57,7 +57,9 @@ func speedread(content []string, config config, title string) (endPos int, err e
 	)
 
 	for word < len(content)-1 && word >= 0 {
-
+		if word < 0 {
+			panic("negative position")
+		}
 		w, h = screen.Size() // TODO: only compute this on EventResize
 		read := float64(word) / float64(len(content))
 
@@ -105,17 +107,23 @@ func speedread(content []string, config config, title string) (endPos int, err e
 			}
 			return time.Minute / time.Duration(config.wpm)
 		}()
-		select { // TODO: listen for keys all the time
+		select {
+		// TODO: listen for keys all the time
+		// TODO: Ctrl-C to exit
 		case <-time.After(t):
 		case key := <-keyChan:
 			switch k := key.(type) {
 			case *tcell.EventKey:
 				switch k.Key() {
 				case tcell.KeyLeft:
-					if pausing {
-						word--
+					if word <= 0 {
+						word = 0
 					} else {
-						word -= 2 // because we add 1 later
+						if pausing {
+							word--
+						} else {
+							word -= 2 // because we add 1 later
+						}
 					}
 				case tcell.KeyRight:
 					word++
