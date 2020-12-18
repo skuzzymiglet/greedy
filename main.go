@@ -19,14 +19,15 @@ var defaultConfig = config{
 	wpm:    400,
 	strong: tcell.StyleDefault.Bold(true).Foreground(tcell.ColorRed),
 	// normal: tcell.StyleDefault.Reverse(true),
-	pauses: map[string]time.Duration{
+	intervals: map[string]time.Duration{
 		".": time.Millisecond * time.Duration(500),
 		"(": time.Millisecond * time.Duration(200),
 		")": time.Millisecond * time.Duration(200),
 		"-": time.Millisecond * time.Duration(300),
 		",": time.Millisecond * time.Duration(300),
 	},
-	pauseEnd: true, pauseStart: true,
+	intervalStart: time.Second, intervalEnd: time.Second,
+	pauseStart: false, pauseEnd: false,
 	left: 10,
 }
 
@@ -63,7 +64,7 @@ func main() {
 		title = article.Title
 		contentHash = sha256.Sum256([]byte(article.TextContent))
 		content = strings.Fields(article.TextContent)
-		// TODO: handle images, code blocks, links, footnotes and other web stuff
+		// TODO: handle images, code blocks, links, footnotes and other web stuff. Or not
 	}
 	// TODO: cannot resume a file if at end
 	conf := defaultConfig
@@ -76,6 +77,7 @@ func main() {
 		log.Printf("Resuming at word %d\n", p)
 		conf.startPos = p
 	}
+	// TODO: run speedread with a context, so we can survive kills/other signals
 	end, err := speedread(content, conf, title)
 	if savePos {
 		log.Println("Saving position...")

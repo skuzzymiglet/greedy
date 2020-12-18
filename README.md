@@ -22,4 +22,12 @@ greedy https://www.arp242.net/read-stdin.html # read articles from the web
 + `<`: move text left
 + `>`: move text right
 
+# options
+
+```
+-p     save position (default true)
+-r     try to resume at saved position (default true)
+-w int speed (words per minute) (default 400)
+```
+
 [![asciicast](https://asciinema.org/a/lgoSRtQU4cbeS33MJu71yNgd6.svg)](https://asciinema.org/a/lgoSRtQU4cbeS33MJu71yNgd6)

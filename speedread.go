@@ -12,11 +12,13 @@ import (
 // Currrently, the text is split by whitespace. Paragraphs are bolted onto eachother
 type config struct { // TODO: add command line flags for every value here
 	pauseEnd, pauseStart bool // TODO: pause when not focused (X11 hacks!)
-	startPos             int
-	wpm                  int
-	pauses               map[string]time.Duration // Determines the pause between words when the according string is found in the word
-	normal, strong       tcell.Style
-	left                 int // Start of text
+	// TODO: remove the bools, always use interval{Start,End} (let main set them to wpm)
+	intervalStart, intervalEnd time.Duration
+	startPos                   int
+	wpm                        int                      // TODO: just turn this into a goddamn time.Duration
+	intervals                  map[string]time.Duration // Determines the pause between words when the according string is found in the word
+	normal, strong             tcell.Style
+	left                       int // Start of text
 }
 
 func speedread(content []string, config config, title string) (endPos int, err error) {
@@ -56,7 +58,7 @@ func speedread(content []string, config config, title string) (endPos int, err e
 		t       time.Duration
 	)
 
-	for word < len(content)-1 && word >= 0 {
+	for word <= len(content)-1 && word >= 0 {
 		if word < 0 {
 			panic("negative position")
 		}
@@ -101,7 +103,12 @@ func speedread(content []string, config config, title string) (endPos int, err e
 
 		// determine how long to wait
 		t = func() time.Duration {
-			for k, v := range config.pauses {
+			if word == 0 {
+				return config.intervalStart
+			} else if word == len(content)-1 {
+				return config.intervalEnd
+			}
+			for k, v := range config.intervals {
 				if strings.Contains(content[word], k) {
 					return v
 				}
